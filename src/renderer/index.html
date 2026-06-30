@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <title>一刀 · 视频处理工作台</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 顶部标题栏 -->
+  <header class="titlebar">
+    <div class="brand">
+      <span class="logo">一刀</span>
+      <span class="subtitle">视频处理工作台</span>
+    </div>
+    <div class="titlebar-right">
+      <span class="status-chip" id="engineStatus">FFmpeg 引擎就绪</span>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- 左侧模块导航 -->
+    <nav class="sidebar">
+      <div class="sidebar-group-label">功能模块</div>
+      <button class="nav-item active" data-module="ffmpeg">
+        <span class="nav-icon">🎬</span>
+        <span class="nav-text">FFmpeg 视频处理</span>
+      </button>
+      <button class="nav-item" data-module="batch">
+        <span class="nav-icon">🗂️</span>
+        <span class="nav-text">批量生成</span>
+        <span class="badge badge-new">抖音</span>
+      </button>
+      <button class="nav-item" data-module="delivery">
+        <span class="nav-icon">📦</span>
+        <span class="nav-text">千川素材交付</span>
+        <span class="badge badge-new">流水线</span>
+      </button>
+      <button class="nav-item disabled" data-module="subtitle" title="即将推出">
+        <span class="nav-icon">💬</span>
+        <span class="nav-text">字幕工具</span>
+        <span class="badge">敬请期待</span>
+      </button>
+      <button class="nav-item disabled" data-module="audio" title="即将推出">
+        <span class="nav-icon">🎵</span>
+        <span class="nav-text">音频提取</span>
+        <span class="badge">敬请期待</span>
+      </button>
+      <div class="sidebar-footer">v1.0.0</div>
+    </nav>
+
+    <!-- 主工作区 -->
+    <main class="workspace">
+      <section class="module" id="module-ffmpeg">
+        <div class="module-header">
+          <h1>FFmpeg 视频处理</h1>
+          <p>选择视频，按需调整参数后导出。所有处理在本地完成。</p>
+        </div>
+
+        <!-- 文件区 -->
+        <div class="panel file-panel">
+          <div class="file-input-row">
+            <button class="btn btn-primary" id="btnOpen">选择视频…</button>
+            <div class="file-path" id="inputPath">尚未选择文件</div>
+          </div>
+          <div class="media-info" id="mediaInfo" hidden>
+            <div class="info-item"><label>时长</label><span id="infoDuration">-</span></div>
+            <div class="info-item"><label>分辨率</label><span id="infoResolution">-</span></div>
+            <div class="info-item"><label>帧率</label><span id="infoFps">-</span></div>
+            <div class="info-item"><label>视频编码</label><span id="infoVcodec">-</span></div>
+            <div class="info-item"><label>码率</label><span id="infoBitrate">-</span></div>
+            <div class="info-item"><label>大小</label><span id="infoSize">-</span></div>
+          </div>
+        </div>
+
+        <!-- 竖屏 / 手机尺寸 -->
+        <fieldset class="panel vertical-panel">
+          <legend>📱 竖屏 / 手机尺寸（抖音短视频）</legend>
+          <div class="vertical-row">
+            <label class="switch-label"><input type="checkbox" id="vEnabled" checked /> 输出为竖屏手机尺寸</label>
+            <div class="field inline">
+              <label>画布尺寸</label>
+              <select id="vSize">
+                <option value="1080x1920" selected>1080 × 1920 (抖音 9:16)</option>
+                <option value="720x1280">720 × 1280 (9:16 省流)</option>
+                <option value="1080x1350">1080 × 1350 (4:5)</option>
+                <option value="1080x1080">1080 × 1080 (1:1)</option>
+              </select>
+            </div>
+            <div class="field inline">
+              <label>适配方式</label>
+              <select id="vMode">
+                <option value="fill">填充裁剪（铺满，最常用）</option>
+                <option value="blur">模糊背景（上下留白处模糊填充）</option>
+                <option value="fit">黑边适配（完整画面+黑边）</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- 参数区 -->
+        <div class="grid">
+          <!-- 编码设置 -->
+          <fieldset class="panel">
+            <legend>编码 / 格式</legend>
+            <div class="field">
+              <label>视频编码</label>
+              <select id="codec">
+                <option value="libx264">H.264 (libx264) 通用</option>
+                <option value="libx265">H.265 (libx265) 高压缩</option>
+                <option value="libvpx-vp9">VP9 (libvpx-vp9)</option>
+                <option value="mpeg4">MPEG-4</option>
+                <option value="copy">不重编码 (copy)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>编码预设</label>
+              <select id="preset">
+                <option value="ultrafast">ultrafast 最快</option>
+                <option value="veryfast">veryfast</option>
+                <option value="medium" selected>medium 均衡</option>
+                <option value="slow">slow 高质量</option>
+                <option value="veryslow">veryslow 最优</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>码率 <small>(留空=自动)</small></label>
+              <input type="text" id="bitrate" placeholder="例如 4000k / 8M" />
+            </div>
+            <div class="field">
+              <label>质量 CRF <small>(0最好-51最差)</small></label>
+              <input type="number" id="crf" value="23" min="0" max="51" />
+            </div>
+          </fieldset>
+
+          <!-- 画面设置 -->
+          <fieldset class="panel">
+            <legend>画面 / 尺寸</legend>
+            <div class="field-row">
+              <div class="field">
+                <label>宽度 (px)</label>
+                <input type="number" id="width" placeholder="自动" min="2" />
+              </div>
+              <div class="field">
+                <label>高度 (px)</label>
+                <input type="number" id="height" placeholder="自动" min="2" />
+              </div>
+            </div>
+            <div class="field">
+              <label>常用分辨率</label>
+              <select id="resPreset">
+                <option value="">— 不更改 —</option>
+                <option value="3840x2160">3840 × 2160 (4K)</option>
+                <option value="1920x1080">1920 × 1080 (1080p)</option>
+                <option value="1280x720">1280 × 720 (720p)</option>
+                <option value="854x480">854 × 480 (480p)</option>
+                <option value="640x360">640 × 360 (360p)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>帧率 FPS <small>(留空=不变)</small></label>
+              <input type="number" id="fps" placeholder="例如 30 / 60" min="1" step="0.01" />
+            </div>
+          </fieldset>
+
+          <!-- 调色与滤镜 -->
+          <fieldset class="panel">
+            <legend>调色 / 滤镜</legend>
+            <div class="field slider-field">
+              <label>亮度 <span class="val" id="brightnessVal">0.00</span></label>
+              <input type="range" id="brightness" min="-1" max="1" step="0.01" value="0" />
+            </div>
+            <div class="field slider-field">
+              <label>饱和度 <span class="val" id="saturationVal">1.00</span></label>
+              <input type="range" id="saturation" min="0" max="3" step="0.01" value="1" />
+            </div>
+            <div class="field slider-field">
+              <label>锐化 <span class="val" id="sharpenVal">0.00</span></label>
+              <input type="range" id="sharpen" min="0" max="3" step="0.05" value="0" />
+            </div>
+            <div class="field slider-field">
+              <label>模糊 <span class="val" id="blurVal">0.00</span></label>
+              <input type="range" id="blur" min="0" max="20" step="0.5" value="0" />
+            </div>
+          </fieldset>
+
+          <!-- 时间裁剪 -->
+          <fieldset class="panel">
+            <legend>时间 / 裁剪</legend>
+            <div class="field">
+              <label>起始时间 <small>(秒，第一帧从第几秒开始)</small></label>
+              <input type="number" id="startTime" placeholder="0" min="0" step="0.1" />
+            </div>
+            <div class="field">
+              <label>截取时长 <small>(秒，留空=到结尾)</small></label>
+              <input type="number" id="duration" placeholder="到结尾" min="0" step="0.1" />
+            </div>
+            <div class="field checkbox-field">
+              <label><input type="checkbox" id="muteAudio" /> 移除音频</label>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- 命令预览 -->
+        <div class="panel cmd-panel">
+          <div class="cmd-header">
+            <span>命令预览</span>
+            <button class="btn btn-ghost btn-sm" id="btnReset">重置参数</button>
+          </div>
+          <code id="cmdPreview">选择文件后生成命令…</code>
+        </div>
+
+        <!-- 输出区 -->
+        <div class="panel output-panel">
+          <div class="file-input-row">
+            <button class="btn" id="btnOutput">选择输出位置…</button>
+            <div class="file-path" id="outputPath">将自动生成于源文件目录</div>
+          </div>
+          <div class="run-row">
+            <button class="btn btn-primary btn-run" id="btnRun" disabled>开始处理</button>
+            <button class="btn btn-danger" id="btnCancel" hidden>取消</button>
+          </div>
+          <div class="progress-wrap" id="progressWrap" hidden>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <span class="progress-text" id="progressText">0%</span>
+          </div>
+        </div>
+
+        <!-- 日志 -->
+        <div class="panel log-panel">
+          <div class="log-header">
+            <span>处理日志</span>
+            <button class="btn btn-ghost btn-sm" id="btnClearLog">清空</button>
+          </div>
+          <pre id="logBox"></pre>
+        </div>
+      </section>
+
+      <!-- 批量生成模块 -->
+      <section class="module" id="module-batch" hidden>
+        <div class="module-header">
+          <h1>批量生成 · 抖音短视频微调</h1>
+          <p>基于一条原视频，批量生成多条经过细微调整的竖屏视频，适合短视频去重 / 多账号分发。后台逐条生成。</p>
+        </div>
+
+        <!-- 原视频 -->
+        <div class="panel file-panel">
+          <div class="file-input-row">
+            <button class="btn btn-primary" id="bOpen">选择原视频…</button>
+            <div class="file-path" id="bInputPath">尚未选择文件</div>
+          </div>
+          <div class="media-info" id="bMediaInfo" hidden>
+            <div class="info-item"><label>时长</label><span id="bInfoDuration">-</span></div>
+            <div class="info-item"><label>分辨率</label><span id="bInfoResolution">-</span></div>
+            <div class="info-item"><label>帧率</label><span id="bInfoFps">-</span></div>
+            <div class="info-item"><label>编码</label><span id="bInfoVcodec">-</span></div>
+            <div class="info-item"><label>码率</label><span id="bInfoBitrate">-</span></div>
+            <div class="info-item"><label>大小</label><span id="bInfoSize">-</span></div>
+          </div>
+        </div>
+
+        <!-- 输出目录 -->
+        <div class="panel">
+          <div class="file-input-row">
+            <button class="btn" id="bOutputDir">选择输出目录…</button>
+            <div class="file-path" id="bOutputPath">尚未选择目录</div>
+          </div>
+        </div>
+
+        <!-- 竖屏设置 -->
+        <fieldset class="panel vertical-panel">
+          <legend>📱 输出尺寸</legend>
+          <div class="vertical-row">
+            <label class="switch-label"><input type="checkbox" id="bvEnabled" checked /> 竖屏手机尺寸</label>
+            <div class="field inline">
+              <label>画布尺寸</label>
+              <select id="bvSize">
+                <option value="1080x1920" selected>1080 × 1920 (抖音 9:16)</option>
+                <option value="720x1280">720 × 1280 (省流)</option>
+                <option value="1080x1350">1080 × 1350 (4:5)</option>
+                <option value="1080x1080">1080 × 1080 (1:1)</option>
+              </select>
+            </div>
+            <div class="field inline">
+              <label>适配方式</label>
+              <select id="bvMode">
+                <option value="fill">填充裁剪</option>
+                <option value="blur">模糊背景</option>
+                <option value="fit">黑边适配</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- 模式切换 -->
+        <div class="tabs">
+          <button class="tab active" data-tab="auto">🎲 自动微调</button>
+          <button class="tab" data-tab="csv">📄 CSV 导入</button>
+        </div>
+
+        <!-- 自动微调 -->
+        <div class="tab-pane" id="tab-auto">
+          <div class="panel">
+            <div class="field-row">
+              <div class="field">
+                <label>生成数量 <small>(1 - 360)</small></label>
+                <input type="number" id="autoCount" value="360" min="1" max="360" />
+              </div>
+              <div class="field">
+                <label>微调强度</label>
+                <select id="autoIntensity">
+                  <option value="subtle">轻微（推荐，肉眼几乎无差异）</option>
+                  <option value="normal" selected>适中（平衡去重与观感）</option>
+                  <option value="strong">较强（差异明显）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>基础编码</label>
+                <select id="autoCodec">
+                  <option value="libx264" selected>H.264</option>
+                  <option value="libx265">H.265</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-row" style="align-items:center;margin-bottom:8px;">
+                <label style="margin:0;">参与微调的维度</label>
+                <button type="button" class="btn btn-sm" id="autoQianchuanPreset">应用千川推荐</button>
+              </div>
+              <div id="autoDims">
+                <div class="dim-group">
+                  <div class="dim-group-title">基础画质</div>
+                  <div class="checkbox-grid">
+                    <label><input type="checkbox" value="brightness" checked /> 亮度</label>
+                    <label><input type="checkbox" value="contrast" checked /> 对比度</label>
+                    <label><input type="checkbox" value="saturation" checked /> 饱和度</label>
+                    <label><input type="checkbox" value="gamma" checked /> 伽马</label>
+                    <label><input type="checkbox" value="sharpen" checked /> 锐化</label>
+                    <label><input type="checkbox" value="blur" /> 模糊</label>
+                    <label><input type="checkbox" value="fps" checked /> 帧率</label>
+                    <label><input type="checkbox" value="bitrate" checked /> 码率</label>
+                    <label><input type="checkbox" value="speed" checked /> 变速(时长)</label>
+                    <label><input type="checkbox" value="zoom" checked /> 轻微缩放</label>
+                    <label><input type="checkbox" value="flip" /> 水平镜像</label>
+                    <label><input type="checkbox" value="startTime" /> 起始微剪</label>
+                    <label><input type="checkbox" value="tailTrim" /> 尾部微剪 <span class="dim-new">NEW</span></label>
+                  </div>
+                </div>
+
+                <div class="dim-group">
+                  <div class="dim-group-title">画面 / 调色</div>
+                  <div class="checkbox-grid">
+                    <label><input type="checkbox" value="temperature" checked /> 色温</label>
+                    <label><input type="checkbox" value="tint" /> 色调(绿品红)</label>
+                    <label><input type="checkbox" value="hue" checked /> 色相</label>
+                    <label><input type="checkbox" value="exposure" checked /> 曝光</label>
+                    <label><input type="checkbox" value="shadowHL" checked /> 阴影/高光</label>
+                    <label><input type="checkbox" value="vignette" /> 暗角</label>
+                    <label><input type="checkbox" value="grain" /> 噪点(颗粒)</label>
+                    <label><input type="checkbox" value="denoise" /> 去噪</label>
+                  </div>
+                </div>
+
+                <div class="dim-group">
+                  <div class="dim-group-title">动态 / 运镜</div>
+                  <div class="checkbox-grid">
+                    <label><input type="checkbox" value="kenburns" /> 运镜推拉 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="shake" /> 手持抖动 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="lut" /> 风格滤镜 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="chromashift" /> 色散 <span class="dim-new">NEW</span></label>
+                  </div>
+                </div>
+
+                <div class="dim-group">
+                  <div class="dim-group-title">编码与文件层</div>
+                  <div class="checkbox-grid">
+                    <label><input type="checkbox" value="gop" checked /> GOP关键帧间隔</label>
+                    <label><input type="checkbox" value="profile" checked /> Profile</label>
+                    <label><input type="checkbox" value="bframes" checked /> B帧数</label>
+                    <label><input type="checkbox" value="colorTag" checked /> 色彩空间标记</label>
+                    <label><input type="checkbox" value="clearMeta" checked /> 元数据</label>
+                    <label><input type="checkbox" value="container" /> 容器格式</label>
+                    <label><input type="checkbox" value="resJitter" /> 分辨率微调</label>
+                    <label><input type="checkbox" value="colorRange" checked /> 色彩范围 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="refs" checked /> 参考帧 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="tune" /> 编码调优 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="metaRich" checked /> 富元数据 <span class="dim-new">NEW</span></label>
+                    <label><input type="checkbox" value="timestamp" checked /> 时间戳 <span class="dim-new">NEW</span></label>
+                  </div>
+                </div>
+
+                <details class="dim-folded">
+                  <summary>未参与维度 · 点击展开，勾选即加入微调</summary>
+                  <div class="dim-group">
+                    <div class="dim-group-title">构图与几何</div>
+                    <div class="checkbox-grid">
+                      <label><input type="checkbox" value="rotate" /> 轻微旋转</label>
+                      <label><input type="checkbox" value="translate" /> 平移</label>
+                      <label><input type="checkbox" value="perspective" /> 透视</label>
+                    </div>
+                  </div>
+                  <div class="dim-group">
+                    <div class="dim-group-title">音频维度</div>
+                    <div class="checkbox-grid">
+                      <label><input type="checkbox" value="volume" /> 音量</label>
+                      <label><input type="checkbox" value="pitch" /> 音调</label>
+                      <label><input type="checkbox" value="audioEq" /> 均衡(高低频)</label>
+                      <label><input type="checkbox" value="reverb" /> 混响 <span class="dim-new">NEW</span></label>
+                      <label><input type="checkbox" value="sampleRate" checked /> 采样率 <span class="dim-new">NEW</span></label>
+                      <label><input type="checkbox" value="audioBitrate" checked /> 音频码率 <span class="dim-new">NEW</span></label>
+                      <label><input type="checkbox" value="afade" /> 淡入淡出 <span class="dim-new">NEW</span></label>
+                      <label><input type="checkbox" value="stereoPan" /> 声道相位 <span class="dim-new">NEW</span></label>
+                    </div>
+                  </div>
+                  <div class="dim-group">
+                    <div class="dim-group-title">内容叠加</div>
+                    <div class="checkbox-grid">
+                      <label><input type="checkbox" value="border" /> 边框描边</label>
+                      <label><input type="checkbox" value="progressBar" /> 进度条</label>
+                      <label><input type="checkbox" value="cornerBadge" /> 角标色块</label>
+                      <label><input type="checkbox" value="textMark" /> 文字水印</label>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+            <div class="field checkbox-field">
+              <label><input type="checkbox" id="autoMute" /> 移除音频</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- CSV 导入 -->
+        <div class="tab-pane" id="tab-csv" hidden>
+          <div class="panel">
+            <div class="csv-actions">
+              <button class="btn" id="csvDownload">⬇ 下载 CSV 模板</button>
+              <button class="btn btn-primary" id="csvOpen">⬆ 选择 CSV 文件…</button>
+              <span class="csv-status" id="csvStatus">尚未导入</span>
+            </div>
+            <p class="csv-hint">每一行对应生成一条视频。中文表头列：文件名, 编码, 帧率, 码率, 亮度, 对比度, 饱和度, 伽马, 锐化, 模糊, 变速, 缩放, 水平镜像, 起始秒, 时长, 移除音频, 竖屏模式, 竖屏尺寸。留空表示不调整该项；水平镜像/移除音频填 1 或 0。</p>
+            <pre class="csv-preview" id="csvPreview" hidden></pre>
+          </div>
+        </div>
+
+        <!-- 执行区 -->
+        <div class="panel output-panel">
+          <div class="run-row">
+            <button class="btn btn-primary btn-run" id="bRun" disabled>开始批量生成</button>
+            <button class="btn btn-danger" id="bCancel" hidden>停止</button>
+            <span class="batch-summary" id="batchSummary"></span>
+          </div>
+          <div class="progress-wrap" id="bOverallWrap" hidden>
+            <span class="progress-label">总进度</span>
+            <div class="progress-bar"><div class="progress-fill" id="bOverallFill"></div></div>
+            <span class="progress-text" id="bOverallText">0 / 0</span>
+          </div>
+          <div class="progress-wrap" id="bItemWrap" hidden>
+            <span class="progress-label">当前项</span>
+            <div class="progress-bar"><div class="progress-fill" id="bItemFill"></div></div>
+            <span class="progress-text" id="bItemText">0%</span>
+          </div>
+        </div>
+
+        <!-- 结果列表 -->
+        <div class="panel">
+          <div class="log-header"><span>生成清单</span><button class="btn btn-ghost btn-sm" id="bShowDir" hidden>打开输出目录</button></div>
+          <div class="result-list" id="bResultList"><div class="result-empty">尚未开始</div></div>
+        </div>
+      </section>
+
+      <!-- 千川素材交付模块 -->
+      <section class="module" id="module-delivery" hidden>
+        <div class="module-header">
+          <h1>千川素材交付 · 流水线</h1>
+          <p>导入原片 → 切片 → 套模板生成任务 → 批量渲染 → 质检 → 导出标准交付包。仅生产素材，不涉及投放数据。</p>
+        </div>
+
+        <!-- 步骤导航（合并为 5 步） -->
+        <div class="step-nav" id="stepNav">
+          <button class="step active" data-step="1"><i>1</i>准备</button>
+          <button class="step" data-step="2"><i>2</i>切片</button>
+          <button class="step" data-step="3"><i>3</i>模板</button>
+          <button class="step" data-step="4"><i>4</i>生产·渲染</button>
+          <button class="step" data-step="5"><i>5</i>质检·交付</button>
+        </div>
+
+        <!-- 步骤1 准备（工作区 + 导入原片） -->
+        <div class="step-pane" id="step-1">
+          <div class="panel">
+            <div class="log-header"><span>① 工作区</span></div>
+            <div class="file-input-row">
+              <button class="btn btn-primary" id="dvChooseWs">选择工作区目录…</button>
+              <div class="file-path" id="dvWsPath">尚未选择工作区</div>
+            </div>
+            <p class="csv-hint">选择后会自动创建 原片 / 切片 / 临时文件 / 成片 / 交付包 / 日志 / 进度数据 子目录，并加载已有进度。</p>
+            <div class="ws-stats" id="dvWsStats" hidden></div>
+          </div>
+          <div class="panel">
+            <div class="log-header"><span>② 导入原片</span></div>
+            <div class="file-input-row">
+              <button class="btn btn-primary" id="dvImport">选择视频（可多选）…</button>
+              <span class="batch-summary" id="dvAssetCount">已导入 0 条</span>
+            </div>
+            <div class="result-list" id="dvAssetList"><div class="result-empty">尚未导入原片</div></div>
+          </div>
+        </div>
+
+        <!-- 步骤2 切片（播放器手动切分） -->
+        <div class="step-pane" id="step-2" hidden>
+          <div class="panel">
+            <div class="log-header"><span>手动切分</span><span class="csv-status" id="dvCutSource">未加载原片</span></div>
+            <video id="dvPlayer" controls preload="metadata" style="width:100%;max-height:420px;background:#000;border-radius:8px;"></video>
+            <div class="cut-toolbar">
+              <button class="btn btn-sm" id="dvSetIn">设入点</button>
+              <span class="csv-status">入点 <b id="dvInVal">--</b></span>
+              <button class="btn btn-sm" id="dvSetOut">设出点</button>
+              <span class="csv-status">出点 <b id="dvOutVal">--</b></span>
+              <button class="btn btn-primary btn-sm" id="dvAddSeg">＋ 切一段</button>
+              <span class="cut-spacer"></span>
+              <button class="btn btn-primary" id="dvDoSlice" disabled>生成切片</button>
+            </div>
+            <p class="csv-hint">播放/拖动到目标位置，点「设入点」「设出点」，再点「＋ 切一段」加入下方列表（自动命名 切片1、切片2…）。全部加完后点「生成切片」真正切出文件。</p>
+            <div class="progress-wrap" id="dvCutWrap" hidden>
+              <span class="progress-label">切片</span>
+              <div class="progress-bar"><div class="progress-fill" id="dvCutFill"></div></div>
+              <span class="progress-text" id="dvCutText">0 / 0</span>
+            </div>
+            <div class="result-list" id="dvSegList"><div class="result-empty">尚无切片，先在上方切几段</div></div>
+          </div>
+        </div>
+
+        <!-- 步骤3 模板 -->
+        <div class="step-pane" id="step-3" hidden>
+          <div class="panel">
+            <div class="log-header">
+              <span>模板管理</span>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-sm" id="dvTplAdd">+ 新增模板</button>
+                <button class="btn btn-sm" id="dvTplImport">导入(JSON)</button>
+                <button class="btn btn-sm" id="dvTplExport">导出(JSON)</button>
+              </div>
+            </div>
+            <div class="result-list" id="dvTemplateList" style="max-height:none;"></div>
+            <p class="csv-hint">可编辑比例 / 目标时长 / 变速 / 组合方式 / 切片间转场。<b>组合方式</b>：「固定顺序」按下方切片顺序拼接；「自由组合」每条素材在所选切片内随机排列，并可指定某片固定为开头或结尾。<b>切片间转场</b>：默认「无（硬切）」；可选淡入淡出/滑动/缩放/擦除/溶解，或「每条随机」（兼做去重）。注意：转场会让成片按重叠略变短、渲染变慢。每个模板可复制或删除。</p>
+          </div>
+        </div>
+
+        <!-- 步骤4 生产·渲染（生产计划 + 渲染） -->
+        <div class="step-pane" id="step-4" hidden>
+          <div class="panel">
+            <div class="log-header"><span>① 生产计划</span></div>
+            <div class="field-row">
+              <div class="field">
+                <label>使用模板</label>
+                <div class="checkbox-grid" id="dvPlanTemplates" style="grid-template-columns:repeat(3,1fr);"></div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>生成数量</label>
+                <input type="number" id="dvPlanCount" value="20" min="1" max="2000" />
+              </div>
+              <div class="field" style="align-self:flex-end;">
+                <button class="btn btn-primary" id="dvGenPlan">生成渲染任务</button>
+              </div>
+            </div>
+            <p class="csv-hint">按所选模板生成指定数量的渲染任务，在多个模板间轮换。「固定顺序」模板按设定顺序拼接；「自由组合」模板每条独立随机排列切片（可固定首/尾）。目标时长&gt;0 时裁剪封顶。命名 BATCH_TPL_V。</p>
+            <div class="batch-summary" id="dvPlanSummary"></div>
+
+            <fieldset class="panel" style="margin-top:14px;">
+              <legend><label style="font-weight:600;cursor:pointer;"><input type="checkbox" id="dvDedupOn" checked /> 🎲 随机化去重（每条参数不同，改变视频指纹）</label></legend>
+              <div id="dvDedupBody">
+                <div class="field-row">
+                  <div class="field inline">
+                    <label>去重强度</label>
+                    <select id="dvDedupIntensity">
+                      <option value="subtle">轻微</option>
+                      <option value="normal" selected>适中</option>
+                      <option value="strong">较强</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="dim-group">
+                  <div class="dim-group-title">参与去重的维度</div>
+                  <div class="checkbox-grid" id="dvDedupDims">
+                    <label><input type="checkbox" value="color" checked /> 调色(亮度/对比度/饱和/色温/色相…)</label>
+                    <label><input type="checkbox" value="style" checked /> 风格(锐化或模糊/颗粒/暗角/去噪)</label>
+                    <label><input type="checkbox" value="enc" checked /> 编码(帧率/CRF/GOP/B帧/Profile)</label>
+                    <label><input type="checkbox" value="trim" checked /> 微剪时长(尾部随机裁剪)</label>
+                    <label><input type="checkbox" value="meta" checked /> 元数据(清空+写注释)</label>
+                    <label><input type="checkbox" value="geometry" checked /> 几何(轻微旋转/平移/缩放/透视)</label>
+                    <label><input type="checkbox" value="flip" checked /> 水平镜像(随机约一半)</label>
+                  </div>
+                </div>
+                <p class="csv-hint">勾选后「生成渲染任务」会为每条素材分配独立随机参数与种子，使同批素材彼此不同；种子写入交付清单 dedupSeed 列。几何 / 镜像会改变画面观感，按需开启。</p>
+              </div>
+            </fieldset>
+          </div>
+
+          <fieldset class="panel">
+            <legend>② 🎵 音频设置</legend>
+            <div class="vertical-row">
+              <div class="field inline">
+                <label>音频模式</label>
+                <select id="dvAudioMode">
+                  <option value="original">保留原声</option>
+                  <option value="music" selected>替换配乐</option>
+                  <option value="mix">原声 + 配乐 混音</option>
+                  <option value="mute">静音</option>
+                </select>
+              </div>
+              <div class="field inline" id="dvMusicRow">
+                <label>配乐文件</label>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <button class="btn btn-sm" id="dvChooseMusic">选择配乐…</button>
+                  <span class="csv-status" id="dvMusicName">未选择</span>
+                </div>
+              </div>
+              <div class="field inline" id="dvMusicLibRow">
+                <label>BGM 素材库 <small>(推荐，每条随机选曲)</small></label>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <button class="btn btn-sm" id="dvChooseMusicLib">选择文件夹…</button>
+                  <span class="csv-status" id="dvMusicLibName">未选择</span>
+                </div>
+              </div>
+            </div>
+            <div class="vertical-row" id="dvVolRow" style="display:none;margin-top:10px;">
+              <div class="field inline slider-field" style="min-width:240px;">
+                <label>配乐音量 <span class="val" id="dvMusicVolVal">1.00</span></label>
+                <input type="range" id="dvMusicVol" min="0" max="1.5" step="0.05" value="1" />
+              </div>
+              <div class="field inline slider-field" id="dvOrigVolWrap" style="min-width:240px;display:none;">
+                <label>原声音量 <span class="val" id="dvOrigVolVal">1.00</span></label>
+                <input type="range" id="dvOrigVol" min="0" max="1.5" step="0.05" value="1" />
+              </div>
+            </div>
+            <p class="csv-hint">「替换配乐 / 混音」可选单个配乐文件，或选择 BGM 素材库文件夹（每条成片随机选曲，去重更强）。配乐会自动循环并裁到成片长度。</p>
+          </fieldset>
+
+          <div class="panel">
+            <div class="log-header"><span>③ 渲染</span></div>
+            <div class="field-row" style="margin-bottom:12px;">
+              <div class="field inline">
+                <label>并发数量 <small>(同时渲染几条)</small></label>
+                <select id="dvConcurrency">
+                  <option value="1" selected>1（最稳）</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4（最快/吃CPU）</option>
+                </select>
+              </div>
+            </div>
+            <div class="run-row">
+              <button class="btn btn-primary btn-run" id="dvRender" disabled>开始渲染</button>
+              <button class="btn" id="dvPause" hidden>暂停</button>
+              <button class="btn" id="dvResume" hidden>继续</button>
+              <button class="btn btn-danger" id="dvRenderCancel" hidden>停止</button>
+              <button class="btn" id="dvRetryFailed" hidden>重试失败项</button>
+              <span class="batch-summary" id="dvRenderSummary"></span>
+            </div>
+            <div class="progress-wrap" id="dvRenderWrap" hidden>
+              <span class="progress-label">总进度</span>
+              <div class="progress-bar"><div class="progress-fill" id="dvRenderFill"></div></div>
+              <span class="progress-text" id="dvRenderText">0 / 0</span>
+            </div>
+            <div class="progress-wrap" id="dvRenderItemWrap" hidden>
+              <span class="progress-label">当前项</span>
+              <div class="progress-bar"><div class="progress-fill" id="dvRenderItemFill"></div></div>
+              <span class="progress-text" id="dvRenderItemText">0%</span>
+            </div>
+            <div class="result-list" id="dvJobList"><div class="result-empty">尚无渲染任务</div></div>
+            <pre class="csv-preview" id="dvRenderErr" hidden></pre>
+          </div>
+        </div>
+
+        <!-- 步骤5 质检·交付（质检 + 交付） -->
+        <div class="step-pane" id="step-5" hidden>
+          <div class="panel">
+            <div class="log-header"><span>① 质检</span></div>
+            <div class="run-row">
+              <button class="btn btn-primary" id="dvQuality" disabled>开始质检</button>
+              <label class="switch-label" style="padding-bottom:0;"><input type="checkbox" id="dvDeepCheck" checked /> 深度质检（黑屏 / 静音检测，较慢）</label>
+              <span class="batch-summary" id="dvQualitySummary"></span>
+            </div>
+            <div class="progress-wrap" id="dvQcWrap" hidden>
+              <span class="progress-label">质检</span>
+              <div class="progress-bar"><div class="progress-fill" id="dvQcFill"></div></div>
+              <span class="progress-text" id="dvQcText">0 / 0</span>
+            </div>
+            <div class="result-list" id="dvQcList"><div class="result-empty">尚未质检</div></div>
+          </div>
+
+          <div class="panel">
+            <div class="log-header"><span>② 交付</span></div>
+            <div class="run-row">
+              <button class="btn btn-primary btn-run" id="dvExport" disabled>导出交付包</button>
+              <button class="btn btn-ghost btn-sm" id="dvOpenBatch" hidden>打开交付目录</button>
+            </div>
+            <div class="progress-wrap" id="dvExportWrap" hidden>
+              <span class="progress-label">导出</span>
+              <div class="progress-bar"><div class="progress-fill" id="dvExportFill"></div></div>
+              <span class="progress-text" id="dvExportText">0%</span>
+            </div>
+            <p class="csv-hint">导出至 交付包/日期_批次NNN/ ，包含 视频、封面、delivery-manifest.csv/json、qc-report.csv/json、readme.txt。</p>
+            <div class="ws-stats" id="dvExportStats" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 占位模块 -->
+      <section class="module placeholder" id="module-placeholder" hidden>
+        <div class="placeholder-content">
+          <span class="placeholder-icon">🚧</span>
+          <h2 id="placeholderTitle">功能开发中</h2>
+          <p>该模块即将推出，敬请期待。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+  <script src="delivery.js"></script>
+</body>
+</html>

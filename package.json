@@ -1,0 +1,21 @@
+{
+  "name": "yidao-video-studio",
+  "version": "1.0.0",
+  "description": "一刀 - 视频处理工作台（基于 FFmpeg 的桌面软件）",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "package": "electron-packager . 一刀视频工作台 --platform=win32 --arch=x64 --electron-version=26.6.10 --electron-zip-dir=\"%LOCALAPPDATA%/electron/Cache\" --out=dist --overwrite --app-version=1.0.0 --win32metadata.ProductName=\"一刀视频工作台\" --win32metadata.FileDescription=\"一刀 · 视频处理工作台\""
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "26.6.10",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0"
+  }
+}

@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>千川素材矩阵运营交付方案</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 16mm 14mm;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      color: #182033;
+      background: #f3f6fb;
+      line-height: 1.65;
+      font-size: 13px;
+    }
+    .page {
+      background: #fff;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 12px;
+      padding: 18mm 17mm;
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+    }
+    .page:last-child {
+      page-break-after: auto;
+    }
+    .cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+      background:
+        radial-gradient(circle at 80% 18%, rgba(255,255,255,.24), transparent 22%),
+        linear-gradient(135deg, #111827 0%, #174ea6 52%, #0f766e 100%);
+    }
+    .cover h1 {
+      margin: 24mm 0 8mm;
+      font-size: 34px;
+      line-height: 1.22;
+      letter-spacing: .5px;
+    }
+    .cover .subtitle {
+      max-width: 132mm;
+      font-size: 17px;
+      color: rgba(255,255,255,.88);
+    }
+    .cover .meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 12mm;
+    }
+    .cover .meta div {
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,.10);
+      min-height: 80px;
+    }
+    .cover .label {
+      color: rgba(255,255,255,.64);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .cover .value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      line-height: 1.25;
+      color: #111827;
+    }
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 16px;
+      color: #174ea6;
+    }
+    p {
+      margin: 0 0 10px;
+    }
+    .lead {
+      font-size: 15px;
+      color: #334155;
+      margin-bottom: 18px;
+    }
+    .muted {
+      color: #64748b;
+    }
+    .section-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfdff;
+      break-inside: avoid;
+    }
+    .card strong {
+      display: block;
+      color: #111827;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+    .highlight {
+      border-left: 5px solid #174ea6;
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+    .warning {
+      border-left: 5px solid #f97316;
+      background: #fff7ed;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+    ul {
+      margin: 7px 0 0 18px;
+      padding: 0;
+    }
+    li {
+      margin: 4px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #dbe4f0;
+      padding: 9px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #eef4ff;
+      color: #17376d;
+      font-weight: 700;
+    }
+    .formula {
+      font-family: Consolas, "Microsoft YaHei", monospace;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 10px 0 14px;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .phase {
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      break-inside: avoid;
+    }
+    .phase-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .phase-title strong {
+      font-size: 17px;
+      color: #111827;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .footer {
+      position: absolute;
+      bottom: 9mm;
+      left: 17mm;
+      right: 17mm;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 10px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 6px;
+    }
+    .toc {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .toc div {
+      padding: 13px 14px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-weight: 700;
+    }
+    .number {
+      color: #174ea6;
+      font-weight: 800;
+      margin-right: 6px;
+    }
+    @media print {
+      body {
+        background: #fff;
+      }
+      .page {
+        margin: 0;
+        width: auto;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <div>
+      <div class="section-tag" style="background:rgba(255,255,255,.16);color:#fff;">运营交付版</div>
+      <h1>千川素材矩阵<br />运营交付方案</h1>
+      <div class="subtitle">围绕“20条原始视频到2000条可测试素材”的生产体系，建立素材矩阵、去重差异化、生命周期管理、人员配置、成本测算与ROI模型。</div>
+    </div>
+    <div class="meta">
+      <div>
+        <div class="label">适用对象</div>
+        <div class="value">运营 / 投放 / 管理层</div>
+      </div>
+      <div>
+        <div class="label">核心目标</div>
+        <div class="value">稳定产出可投素材</div>
+      </div>
+      <div>
+        <div class="label">交付口径</div>
+        <div class="value">前期 / 中期 / 后期</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">01 总览</span>
+    <h2>这套方案解决什么问题</h2>
+    <p class="lead">千川投流的关键，不是把单条视频做得“最精致”，而是持续生产足够多的差异化素材，快速测试、找到跑量结构，再把有效结构复制放大。</p>
+    <div class="highlight">
+      <strong>核心判断：</strong>服装类短视频的跑量因素通常是“商品力、封面、前3秒、文案、价格与评论”，动作变化只是其中一环。因此前期不建议把主要资源投入到高成本AI换动作，而应优先建立素材矩阵和测试闭环。
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <strong>运营目标</strong>
+        <p>每天从20条左右原始视频中，形成1000-2000条可用于千川测试的素材变体，并沉淀可复用模板。</p>
+      </div>
+      <div class="card">
+        <strong>投放目标</strong>
+        <p>用小预算筛出高CTR、高转化、高ROI素材，再对TOP素材做二次强化和放量。</p>
+      </div>
+      <div class="card">
+        <strong>管理目标</strong>
+        <p>把素材从“人工灵感产出”变成“有节奏、有数据、有复盘”的生产线。</p>
+      </div>
+      <div class="card">
+        <strong>成本目标</strong>
+        <p>降低单条素材生产成本，把预算尽量花在有效测试和爆款放大上。</p>
+      </div>
+    </div>
+    <h3>目录</h3>
+    <div class="toc">
+      <div><span class="number">02</span>什么是素材矩阵</div>
+      <div><span class="number">03</span>什么是去重与视频指纹</div>
+      <div><span class="number">04</span>千川素材生命周期</div>
+      <div><span class="number">05</span>2000条素材生产体系</div>
+      <div><span class="number">06</span>人员配置与成本测算</div>
+      <div><span class="number">07</span>ROI模型</div>
+      <div><span class="number">08</span>前中后三阶段交付</div>
+      <div><span class="number">09</span>运营执行清单</div>
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>01</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">02 素材矩阵</span>
+    <h2>什么是素材矩阵</h2>
+    <p class="lead">素材矩阵，是把同一个SKU或同一批原始视频，按照不同角度拆成多种可测试版本，再分配到不同计划、账号、定向和预算中进行验证。</p>
+    <div class="highlight">
+      <strong>一句话解释：</strong>1条原始素材不是只投1次，而是被拆成多条不同“表达方式”的素材，用数据判断哪一种表达能跑量。
+    </div>
+    <h3>矩阵不是简单复制</h3>
+    <table>
+      <tr>
+        <th>错误做法</th>
+        <th>正确做法</th>
+      </tr>
+      <tr>
+        <td>同一条视频改文件名、改MD5、重复上传。</td>
+        <td>围绕开头、镜头顺序、字幕卖点、封面、配乐、比例、节奏做差异化组合。</td>
+      </tr>
+      <tr>
+        <td>每条素材都凭感觉做，没有统一命名和复盘。</td>
+        <td>每条素材都记录SKU、卖点、模板、版本、投放计划和结果。</td>
+      </tr>
+      <tr>
+        <td>只看单条素材是否爆。</td>
+        <td>看某一类结构、某一类卖点、某一类开头是否长期有效。</td>
+      </tr>
+    </table>
+    <h3>服装类千川常用矩阵维度</h3>
+    <div class="grid-3">
+      <div class="card"><strong>商品维度</strong><p>SKU、款式、颜色、价格带、库存深度、主推卖点。</p></div>
+      <div class="card"><strong>人群维度</strong><p>梨形身材、通勤、约会、微胖、宝妈、学生党等。</p></div>
+      <div class="card"><strong>开头维度</strong><p>痛点开头、利益开头、场景开头、反差开头、爆款背书。</p></div>
+      <div class="card"><strong>镜头维度</strong><p>走两步、转身、正面展示、侧面展示、细节展示、上身效果。</p></div>
+      <div class="card"><strong>包装维度</strong><p>封面、字幕、口播、配乐、节奏、比例、画面裁切。</p></div>
+      <div class="card"><strong>投放维度</strong><p>账号、计划、定向、预算、投放时段、承接页面。</p></div>
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>02</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">03 去重与视频指纹</span>
+    <h2>什么是去重</h2>
+    <p class="lead">这里的“去重”建议理解为“素材差异化生产”：让每条素材在画面结构、表达卖点、节奏和使用场景上形成真实差异，而不是只做文件层面的伪修改。</p>
+    <div class="warning">
+      <strong>运营原则：</strong>不要把去重理解成规避平台审核。真正可持续的做法，是通过镜头重组、文案变化、封面变化、场景表达和素材组合，让素材变成新的创意版本。
+    </div>
+    <h3>什么是视频指纹</h3>
+    <p>平台会通过关键帧、画面结构、音频特征、动作顺序、背景、字幕和整体节奏来判断素材相似度。它类似于视频的“DNA”，不是简单改文件名或重新导出就能改变。</p>
+    <table>
+      <tr>
+        <th>层级</th>
+        <th>常见操作</th>
+        <th>运营价值</th>
+      </tr>
+      <tr>
+        <td>低价值变化</td>
+        <td>改文件名、改MD5、重新压缩、调整码率。</td>
+        <td>对素材差异帮助很小，不建议作为主方案。</td>
+      </tr>
+      <tr>
+        <td>基础差异化</td>
+        <td>裁切、缩放、比例变化、轻微变速、配乐变化。</td>
+        <td>可作为批量生产的辅助动作。</td>
+      </tr>
+      <tr>
+        <td>有效差异化</td>
+        <td>开头重做、镜头顺序重组、字幕卖点变化、封面变化。</td>
+        <td>适合大规模矩阵测试，是前中期重点。</td>
+      </tr>
+      <tr>
+        <td>高级差异化</td>
+        <td>AI首帧、AI延长、背景增强、动作重定向。</td>
+        <td>适合已验证的跑量素材，不建议前期全面铺开。</td>
+      </tr>
+    </table>
+    <h3>运营口径</h3>
+    <ul>
+      <li>去重不是为了“骗过平台”，而是为了提升素材的新鲜度和测试覆盖度。</li>
+      <li>优先做开头、卖点、封面、镜头顺序，因为这些更影响用户是否停留和点击。</li>
+      <li>AI高级处理只用在已经有数据证明能跑的素材上，避免前期成本失控。</li>
+    </ul>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>03</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">04 生命周期</span>
+    <h2>千川素材生命周期</h2>
+    <p class="lead">素材不是“做完上传”就结束，而是从入库、生产、测试、放量、衰减到复盘再生产的完整闭环。</p>
+    <table>
+      <tr>
+        <th>阶段</th>
+        <th>运营动作</th>
+        <th>关键指标</th>
+        <th>产出物</th>
+      </tr>
+      <tr>
+        <td>1. 原片入库</td>
+        <td>按SKU、模特、背景、场景、拍摄日期归档。</td>
+        <td>原片数量、可用率、缺失信息。</td>
+        <td>素材资产表。</td>
+      </tr>
+      <tr>
+        <td>2. 切片与标记</td>
+        <td>拆分走路、转身、展示、细节等镜头段。</td>
+        <td>可用镜头数、镜头完整度。</td>
+        <td>镜头切片表。</td>
+      </tr>
+      <tr>
+        <td>3. 组合生产</td>
+        <td>按模板生成开头、主体、卖点、结尾组合。</td>
+        <td>日生产量、模板覆盖度。</td>
+        <td>素材版本包。</td>
+      </tr>
+      <tr>
+        <td>4. 质检上架</td>
+        <td>检查画面、字幕、违规词、商品一致性。</td>
+        <td>质检通过率、返工率。</td>
+        <td>可投素材清单。</td>
+      </tr>
+      <tr>
+        <td>5. 小预算测试</td>
+        <td>多计划、小预算、快速看数据。</td>
+        <td>CTR、CVR、成交ROI、消耗速度。</td>
+        <td>测试日报。</td>
+      </tr>
+      <tr>
+        <td>6. 放量与衰减</td>
+        <td>提升预算，观察素材疲劳，及时补充变体。</td>
+        <td>ROI稳定性、消耗上限、衰减周期。</td>
+        <td>放量素材池。</td>
+      </tr>
+      <tr>
+        <td>7. 复盘再生产</td>
+        <td>提炼有效结构，对TOP素材做二次强化。</td>
+        <td>爆款率、模板复用率、单条素材成本。</td>
+        <td>复盘报告和新模板。</td>
+      </tr>
+    </table>
+    <div class="highlight">
+      <strong>生命周期目标：</strong>不是每天盲目做2000条，而是让每一批素材都能沉淀“什么开头有效、什么卖点有效、什么SKU值得继续放大”。
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>04</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">05 生产体系</span>
+    <h2>2000条素材生产体系</h2>
+    <p class="lead">以每天20条原始视频为基础，每条视频平均生成100个版本，即可形成2000条素材池。重点不是每条都投大预算，而是用足够数量覆盖测试可能性。</p>
+    <h3>推荐生产公式</h3>
+    <div class="formula">
+      20条原始视频 × 5种开头 × 4种镜头结构 × 5种字幕/封面包装 = 2000条素材<br />
+      可再叠加：2种比例、3种配乐、不同投放账号与计划，但不建议前期无节制膨胀。
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <strong>原始视频要求</strong>
+        <ul>
+          <li>模特固定机位或半固定机位。</li>
+          <li>包含走两步、转身、正面展示、侧面展示。</li>
+          <li>背景尽量多样，背景不同本身就是素材差异。</li>
+          <li>画面清晰，商品主体不被遮挡。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>素材版本结构</strong>
+        <ul>
+          <li>前3秒：钩子、痛点、利益点。</li>
+          <li>中段：上身效果、版型、场景感。</li>
+          <li>后段：价格、活动、下单理由。</li>
+          <li>包装：封面、字幕、音乐、节奏。</li>
+        </ul>
+      </div>
+    </div>
+    <h3>生产线分工</h3>
+    <table>
+      <tr>
+        <th>环节</th>
+        <th>要做什么</th>
+        <th>通过标准</th>
+      </tr>
+      <tr>
+        <td>素材入库</td>
+        <td>按SKU和拍摄批次整理原片，补充商品信息、卖点和价格。</td>
+        <td>每条原片可追溯到SKU和拍摄信息。</td>
+      </tr>
+      <tr>
+        <td>镜头拆分</td>
+        <td>把原片拆成可复用动作段，如正面、转身、细节、走动。</td>
+        <td>每个动作段可单独进入组合。</td>
+      </tr>
+      <tr>
+        <td>模板组合</td>
+        <td>用固定模板批量组合开头、镜头、字幕、封面。</td>
+        <td>每条素材有明确版本命名。</td>
+      </tr>
+      <tr>
+        <td>质检</td>
+        <td>检查商品一致性、字幕错字、画面裁切、禁用词和重复度。</td>
+        <td>通过率达到90%以上。</td>
+      </tr>
+      <tr>
+        <td>投放测试</td>
+        <td>小预算分层测试，记录素材ID和计划ID。</td>
+        <td>能回收CTR、CVR、ROI数据。</td>
+      </tr>
+      <tr>
+        <td>数据复盘</td>
+        <td>按SKU、模板、钩子、卖点复盘有效结构。</td>
+        <td>每周新增可复用模板。</td>
+      </tr>
+    </table>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>05</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">06 人员与成本</span>
+    <h2>人员配置</h2>
+    <p class="lead">人员配置建议分为“最小启动组”和“标准放量组”。前期先跑通流程，中期再扩人提高稳定产能。</p>
+    <table>
+      <tr>
+        <th>角色</th>
+        <th>最小启动配置</th>
+        <th>主要职责</th>
+      </tr>
+      <tr>
+        <td>项目负责人</td>
+        <td>1人</td>
+        <td>确定SKU优先级、节奏、预算口径、跨部门协调。</td>
+      </tr>
+      <tr>
+        <td>素材运营</td>
+        <td>1-2人</td>
+        <td>卖点拆解、矩阵规划、版本命名、素材排期。</td>
+      </tr>
+      <tr>
+        <td>剪辑/质检</td>
+        <td>2人</td>
+        <td>模板检查、字幕封面、成片质检、返工处理。</td>
+      </tr>
+      <tr>
+        <td>千川投手</td>
+        <td>1人</td>
+        <td>计划搭建、小预算测试、放量、数据回收。</td>
+      </tr>
+      <tr>
+        <td>技术/自动化支持</td>
+        <td>0.5-1人</td>
+        <td>批量渲染、文件管理、数据看板、异常处理。</td>
+      </tr>
+      <tr>
+        <td>数据分析</td>
+        <td>可兼职</td>
+        <td>周复盘、爆款结构提炼、成本与ROI分析。</td>
+      </tr>
+    </table>
+    <h3>月度成本测算示例</h3>
+    <table>
+      <tr>
+        <th>成本项</th>
+        <th>启动期参考</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td>人员成本</td>
+        <td>7万-10万元/月</td>
+        <td>约5-6人，含负责人、运营、剪辑质检、投手、技术兼职。</td>
+      </tr>
+      <tr>
+        <td>工具与算力</td>
+        <td>1万-3万元/月</td>
+        <td>批量渲染、云盘、素材管理、AI文案/配音/封面等。</td>
+      </tr>
+      <tr>
+        <td>拍摄与补拍</td>
+        <td>按业务另计</td>
+        <td>如已有日常拍摄能力，可先不新增大额成本。</td>
+      </tr>
+      <tr>
+        <td>投放预算</td>
+        <td>单独核算</td>
+        <td>投放预算不应计入生产成本，应进入ROI模型。</td>
+      </tr>
+      <tr>
+        <td>综合生产成本</td>
+        <td>8万-13万元/月</td>
+        <td>不含广告消耗。若月产5万条素材，单条生产成本约1.6-2.6元。</td>
+      </tr>
+    </table>
+    <div class="warning">
+      <strong>成本提醒：</strong>单条素材成本低，不代表要无差别投放。真正要控制的是“测试成本”和“无效素材比例”，否则生产端省下的钱会在投放端浪费掉。
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>06</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">07 ROI模型</span>
+    <h2>ROI怎么计算</h2>
+    <p class="lead">千川素材体系的ROI不能只看素材产量，而要看“素材带来的有效成交”和“是否能找到可持续放量的结构”。</p>
+    <h3>基础公式</h3>
+    <div class="formula">
+      投放ROI = 成交GMV / 广告消耗<br />
+      毛利贡献 = 成交GMV × 商品毛利率 - 广告消耗 - 履约/退货/客服等成本<br />
+      素材净贡献 = 毛利贡献 - 素材生产成本<br />
+      保本ROI = 1 / 商品综合毛利率
+    </div>
+    <table>
+      <tr>
+        <th>商品综合毛利率</th>
+        <th>理论保本ROI</th>
+        <th>建议运营口径</th>
+      </tr>
+      <tr>
+        <td>30%</td>
+        <td>3.33</td>
+        <td>低于3.3大概率亏损，除非有复购或拉新价值。</td>
+      </tr>
+      <tr>
+        <td>40%</td>
+        <td>2.50</td>
+        <td>常见参考线，实际需扣除素材、人力、退货等成本。</td>
+      </tr>
+      <tr>
+        <td>50%</td>
+        <td>2.00</td>
+        <td>放量空间更大，但仍要看退货率和库存。</td>
+      </tr>
+    </table>
+    <h3>素材测试漏斗</h3>
+    <table>
+      <tr>
+        <th>漏斗层级</th>
+        <th>参考比例</th>
+        <th>运营动作</th>
+      </tr>
+      <tr>
+        <td>生产素材</td>
+        <td>2000条/天</td>
+        <td>覆盖SKU、卖点、开头、封面、镜头结构。</td>
+      </tr>
+      <tr>
+        <td>进入小测</td>
+        <td>10%-20%</td>
+        <td>优先测试主推SKU、库存充足、价格有优势的素材。</td>
+      </tr>
+      <tr>
+        <td>进入复测</td>
+        <td>3%-8%</td>
+        <td>保留CTR、CVR、ROI有信号的素材结构。</td>
+      </tr>
+      <tr>
+        <td>进入放量</td>
+        <td>1%-3%</td>
+        <td>扩预算，同时补充相似变体防止素材疲劳。</td>
+      </tr>
+      <tr>
+        <td>沉淀模板</td>
+        <td>每周5-10个</td>
+        <td>把跑量结构变成下一周的生产模板。</td>
+      </tr>
+    </table>
+    <div class="highlight">
+      <strong>ROI管理重点：</strong>2000条素材的价值，不是2000条都赚钱，而是用可控成本找到少数能跑量的素材，并把这些素材背后的结构沉淀下来。
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>07</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">08 阶段交付</span>
+    <h2>前期 / 中期 / 后期交付情况</h2>
+    <p class="lead">三阶段的核心区别：前期跑通流程，中期稳定产能，后期用数据驱动自动优化。</p>
+    <div class="timeline">
+      <div class="phase">
+        <div class="phase-title">
+          <strong>前期：0-30天，跑通MVP</strong>
+          <span class="badge">目标：能生产、能投放、能复盘</span>
+        </div>
+        <table>
+          <tr>
+            <th>交付项</th>
+            <th>完成标准</th>
+          </tr>
+          <tr>
+            <td>素材资产表</td>
+            <td>所有原片按SKU、模特、背景、卖点、拍摄日期归档。</td>
+          </tr>
+          <tr>
+            <td>基础素材矩阵</td>
+            <td>建立5类开头、4类镜头结构、5类字幕/封面模板。</td>
+          </tr>
+          <tr>
+            <td>首批批量生产</td>
+            <td>从20条原视频稳定产出500-1000条可质检素材。</td>
+          </tr>
+          <tr>
+            <td>千川测试表</td>
+            <td>每条素材能关联计划ID、消耗、CTR、CVR、ROI。</td>
+          </tr>
+          <tr>
+            <td>周复盘机制</td>
+            <td>每周输出TOP素材、低效素材、有效开头和有效卖点。</td>
+          </tr>
+        </table>
+      </div>
+      <div class="phase">
+        <div class="phase-title">
+          <strong>中期：31-90天，形成稳定产线</strong>
+          <span class="badge">目标：日产2000条、周周有模板</span>
+        </div>
+        <table>
+          <tr>
+            <th>交付项</th>
+            <th>完成标准</th>
+          </tr>
+          <tr>
+            <td>2000条生产SOP</td>
+            <td>明确每日原片输入、模板组合、质检、上架、测试节奏。</td>
+          </tr>
+          <tr>
+            <td>素材命名与追踪</td>
+            <td>素材ID包含SKU、模板、开头、版本、日期，便于复盘。</td>
+          </tr>
+          <tr>
+            <td>质检标准</td>
+            <td>字幕、画面、商品一致性、禁用词、重复度有统一规则。</td>
+          </tr>
+          <tr>
+            <td>投放分层策略</td>
+            <td>小测、复测、放量、衰减各有预算和指标阈值。</td>
+          </tr>
+          <tr>
+            <td>ROI看板</td>
+            <td>按SKU、模板、开头、卖点维度查看消耗和产出。</td>
+          </tr>
+          <tr>
+            <td>TOP素材二次强化</td>
+            <td>对已验证素材做AI首帧、镜头延长、背景增强或新封面。</td>
+          </tr>
+        </table>
+      </div>
+      <div class="phase">
+        <div class="phase-title">
+          <strong>后期：90天以后，数据驱动放大</strong>
+          <span class="badge">目标：自动优先生产更可能跑量的素材</span>
+        </div>
+        <table>
+          <tr>
+            <th>交付项</th>
+            <th>完成标准</th>
+          </tr>
+          <tr>
+            <td>爆款结构库</td>
+            <td>沉淀高ROI开头、封面、卖点、镜头结构和适配SKU。</td>
+          </tr>
+          <tr>
+            <td>素材生命周期管理</td>
+            <td>自动标记新素材、测试中、放量中、衰减、淘汰、复用。</td>
+          </tr>
+          <tr>
+            <td>预算联动机制</td>
+            <td>投放预算向高信号素材倾斜，低效素材快速止损。</td>
+          </tr>
+          <tr>
+            <td>预测与推荐</td>
+            <td>根据历史数据推荐优先生产的SKU、模板和卖点组合。</td>
+          </tr>
+          <tr>
+            <td>团队规模化</td>
+            <td>形成运营、投放、剪辑质检、技术、数据的稳定协作机制。</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>08</span></div>
+  </section>
+
+  <section class="page">
+    <span class="section-tag">09 执行清单</span>
+    <h2>运营每日与每周执行清单</h2>
+    <div class="grid-2">
+      <div class="card">
+        <strong>每日输入</strong>
+        <ul>
+          <li>确认当日主推SKU、库存、价格和活动。</li>
+          <li>收集20条左右原始视频，补齐SKU信息。</li>
+          <li>确认当天优先测试的人群和卖点。</li>
+          <li>确认前一天TOP素材和应复制的模板。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>每日生产</strong>
+        <ul>
+          <li>按模板批量生成素材版本。</li>
+          <li>完成封面、字幕、配乐和比例包装。</li>
+          <li>质检通过后输出可投放素材清单。</li>
+          <li>把素材ID同步给投手，保证数据可追踪。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>每日投放</strong>
+        <ul>
+          <li>新素材进入小预算测试。</li>
+          <li>达到阈值的素材进入复测或放量。</li>
+          <li>低效素材及时止损，不长期占预算。</li>
+          <li>记录异常消耗、审核失败、素材疲劳。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <strong>每周复盘</strong>
+        <ul>
+          <li>按SKU、开头、卖点、封面、模板复盘ROI。</li>
+          <li>沉淀本周TOP结构和淘汰结构。</li>
+          <li>更新下周生产模板和测试方向。</li>
+          <li>评估人员效率、单条成本和投放浪费。</li>
+        </ul>
+      </div>
+    </div>
+    <h3>建议首月验收指标</h3>
+    <table>
+      <tr>
+        <th>指标</th>
+        <th>建议目标</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td>原片入库完整率</td>
+        <td>95%以上</td>
+        <td>否则后续无法按SKU和素材结构复盘。</td>
+      </tr>
+      <tr>
+        <td>日产可用素材</td>
+        <td>500-1000条起步</td>
+        <td>前期先稳定质量，再冲2000条。</td>
+      </tr>
+      <tr>
+        <td>质检通过率</td>
+        <td>90%以上</td>
+        <td>低于该值说明模板或源素材标准有问题。</td>
+      </tr>
+      <tr>
+        <td>数据回收率</td>
+        <td>100%</td>
+        <td>每条投放素材必须能回收计划和ROI数据。</td>
+      </tr>
+      <tr>
+        <td>周新增有效模板</td>
+        <td>5个以上</td>
+        <td>有效模板是后续规模化的核心资产。</td>
+      </tr>
+    </table>
+    <div class="highlight">
+      <strong>最终交付目标：</strong>运营可以按表执行，投放可以按素材ID复盘，管理层可以看成本和ROI，团队可以持续复制高胜率素材结构。
+    </div>
+    <div class="footer"><span>千川素材矩阵运营交付方案</span><span>09</span></div>
+  </section>
+</body>
+</html>
