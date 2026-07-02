@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
+  openFiles: () => ipcRenderer.invoke('dialog:openFiles'),
   saveFile: (defaultPath) => ipcRenderer.invoke('dialog:saveFile', defaultPath),
   openDir: () => ipcRenderer.invoke('dialog:openDir'),
   probe: (input) => ipcRenderer.invoke('ffmpeg:probe', input),

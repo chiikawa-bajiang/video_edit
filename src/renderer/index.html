@@ -240,13 +240,13 @@
       <section class="module" id="module-batch" hidden>
         <div class="module-header">
           <h1>批量生成 · 抖音短视频微调</h1>
-          <p>基于一条原视频，批量生成多条经过细微调整的竖屏视频，适合短视频去重 / 多账号分发。后台逐条生成。</p>
+          <p>可选择一个或多个原视频，为每个原视频批量生成多条经过细微调整的竖屏视频，适合短视频去重 / 多账号分发。每个原视频在输出目录下拥有独立子文件夹，生成数量针对每个原视频。后台逐条生成。</p>
         </div>
 
         <!-- 原视频 -->
         <div class="panel file-panel">
           <div class="file-input-row">
-            <button class="btn btn-primary" id="bOpen">选择原视频…</button>
+            <button class="btn btn-primary" id="bOpen">选择原视频（可多选）…</button>
             <div class="file-path" id="bInputPath">尚未选择文件</div>
           </div>
           <div class="media-info" id="bMediaInfo" hidden>
@@ -303,7 +303,7 @@
           <div class="panel">
             <div class="field-row">
               <div class="field">
-                <label>生成数量 <small>(1 - 360)</small></label>
+                <label>生成数量 <small>(每个原视频 1 - 360)</small></label>
                 <input type="number" id="autoCount" value="360" min="1" max="360" />
               </div>
               <div class="field">

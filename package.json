@@ -6,11 +6,16 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "package": "electron-packager . 一刀视频工作台 --platform=win32 --arch=x64 --electron-version=26.6.10 --electron-zip-dir=\"%LOCALAPPDATA%/electron/Cache\" --out=dist --overwrite --app-version=1.0.0 --win32metadata.ProductName=\"一刀视频工作台\" --win32metadata.FileDescription=\"一刀 · 视频处理工作台\""
+    "ffmpeg:win": "cross-env npm_config_platform=win32 npm_config_arch=x64 node node_modules/ffmpeg-static/install.js",
+    "ffmpeg:mac": "cross-env npm_config_platform=darwin npm_config_arch=x64 node node_modules/ffmpeg-static/install.js",
+    "package:win": "npm run ffmpeg:win && electron-packager . 一刀视频工作台 --platform=win32 --arch=x64 --electron-version=26.6.10 --out=dist --overwrite --app-version=1.0.0 --win32metadata.ProductName=\"一刀视频工作台\" --win32metadata.FileDescription=\"一刀 · 视频处理工作台\"",
+    "package:mac": "npm run ffmpeg:mac && electron-packager . 一刀视频工作台 --platform=darwin --arch=x64 --electron-version=26.6.10 --out=dist --overwrite --app-version=1.0.0",
+    "package": "npm run package:win && npm run package:mac"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "electron": "26.6.10",
     "electron-packager": "^17.1.2"
   },

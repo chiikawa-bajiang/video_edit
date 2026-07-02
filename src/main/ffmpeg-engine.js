@@ -1,6 +1,8 @@
 'use strict';
 
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 function resolveBinary(mod) {
   let p = mod;
@@ -11,6 +13,18 @@ function resolveBinary(mod) {
 
 const ffmpegPath = resolveBinary(require('ffmpeg-static'));
 const ffprobePath = resolveBinary(require('ffprobe-static'));
+
+// 各平台内置字体（drawtext 默认字体）。冒号在滤镜串里需转义（Windows 盘符）。
+function defaultFontFile() {
+  switch (process.platform) {
+    case 'win32':
+      return 'C\\:/Windows/Fonts/arial.ttf';
+    case 'darwin':
+      return '/System/Library/Fonts/Supplemental/Arial.ttf';
+    default:
+      return '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
+  }
+}
 
 function num(v) {
   const n = parseFloat(v);
@@ -238,7 +252,7 @@ function buildOverlayFilters(opts) {
     const color = tm.color || 'white@0.5';
     const x = tm.x != null ? tm.x : '20';
     const y = tm.y != null ? tm.y : '20';
-    const font = (opts.fontFile || 'C\\:/Windows/Fonts/arial.ttf');
+    const font = (opts.fontFile || defaultFontFile());
     f.push(`drawtext=fontfile=${font}:text='${text}':fontcolor=${color}:fontsize=${fs}:x=${x}:y=${y}`);
   }
 
@@ -491,6 +505,9 @@ function probe(input) {
 
 function run(opts, onProgress, onLog) {
   return new Promise((resolve, reject) => {
+    if (opts && opts.output) {
+      try { fs.mkdirSync(path.dirname(String(opts.output)), { recursive: true }); } catch (e) { /* noop */ }
+    }
     const args = buildArgs(opts);
     if (onLog) onLog(`ffmpeg ${args.join(' ')}`);
 

@@ -59,6 +59,19 @@ ipcMain.handle('dialog:openFile', async () => {
   return res.filePaths[0];
 });
 
+ipcMain.handle('dialog:openFiles', async () => {
+  const res = await dialog.showOpenDialog(mainWindow, {
+    title: '选择视频文件（可多选）',
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: '视频文件', extensions: ['mp4', 'mov', 'mkv', 'avi', 'flv', 'wmv', 'webm', 'm4v', 'ts', 'mpg', 'mpeg'] },
+      { name: '所有文件', extensions: ['*'] },
+    ],
+  });
+  if (res.canceled || !res.filePaths.length) return [];
+  return res.filePaths;
+});
+
 ipcMain.handle('dialog:saveFile', async (e, defaultPath) => {
   const res = await dialog.showSaveDialog(mainWindow, {
     title: '保存输出文件',

@@ -266,33 +266,42 @@ $('btnCancel').addEventListener('click', async () => {
  *  批量生成模块
  * ==================================================================== */
 const batch = {
-  input: null,
-  meta: null,
+  inputs: [],        // [{ path, meta }]
   outDir: null,
   mode: 'auto',      // auto | csv
   csvRows: null,
   running: false,
 };
 
-// ---- 选择原视频 ----
+// ---- 选择原视频（可多选） ----
 $('bOpen').addEventListener('click', async () => {
-  const file = await window.api.openFile();
-  if (!file) return;
-  batch.input = file;
-  $('bInputPath').textContent = file;
+  const files = await window.api.openFiles();
+  if (!files || !files.length) return;
+  batch.inputs = [];
   $('bMediaInfo').hidden = true;
-  try {
-    const meta = await window.api.probe(file);
-    batch.meta = meta;
-    $('bInfoDuration').textContent = fmtDuration(meta.duration);
-    $('bInfoResolution').textContent = meta.width ? `${meta.width}×${meta.height}` : '-';
-    $('bInfoFps').textContent = meta.fps ? meta.fps + ' fps' : '-';
-    $('bInfoVcodec').textContent = meta.vcodec || '-';
-    $('bInfoBitrate').textContent = fmtBitrate(meta.bitrate);
-    $('bInfoSize').textContent = fmtSize(meta.size);
+  $('bInputPath').textContent = `正在读取 ${files.length} 个视频信息…`;
+  for (const f of files) {
+    let meta = null;
+    try { meta = await window.api.probe(f); } catch (e) { /* 忽略单个文件读取失败 */ }
+    batch.inputs.push({ path: f, meta });
+  }
+
+  if (batch.inputs.length === 1) {
+    $('bInputPath').textContent = batch.inputs[0].path;
+  } else {
+    const names = batch.inputs.map((s) => baseFileName(s.path)).join('、');
+    $('bInputPath').textContent = `已选择 ${batch.inputs.length} 个原视频：${names}`;
+  }
+
+  const m0 = batch.inputs[0].meta;
+  if (m0) {
+    $('bInfoDuration').textContent = fmtDuration(m0.duration);
+    $('bInfoResolution').textContent = m0.width ? `${m0.width}×${m0.height}` : '-';
+    $('bInfoFps').textContent = m0.fps ? m0.fps + ' fps' : '-';
+    $('bInfoVcodec').textContent = m0.vcodec || '-';
+    $('bInfoBitrate').textContent = fmtBitrate(m0.bitrate);
+    $('bInfoSize').textContent = fmtSize(m0.size);
     $('bMediaInfo').hidden = false;
-  } catch (e) {
-    toast('读取视频信息失败：' + e.message, 'error');
   }
   refreshBatchRunState();
 });
@@ -339,7 +348,7 @@ document.querySelectorAll('.tab').forEach((tab) => {
 });
 
 function refreshBatchRunState() {
-  let ready = !!batch.input && !!batch.outDir && !batch.running;
+  let ready = batch.inputs.length > 0 && !!batch.outDir && !batch.running;
   if (batch.mode === 'csv') ready = ready && !!(batch.csvRows && batch.csvRows.length);
   $('bRun').disabled = !ready;
 }
@@ -532,45 +541,51 @@ function generateAutoJobs() {
   const codec = $('autoCodec').value;
   const mute = $('autoMute').checked;
   const dims = Array.from($('autoDims').querySelectorAll('input[type=checkbox]:checked')).map((c) => c.value);
-
   const vertical = readVertical('bvEnabled', 'bvSize', 'bvMode');
-  const baseName = baseFileName(batch.input);
-  const baseBitrateK = batch.meta && batch.meta.bitrate ? Math.round(batch.meta.bitrate / 1000) : 4000;
-  const ctxBase = { R, codec, baseBitrateK, vertical };
-  const intensitySeed = strHash(intensity) ^ count;
-
-  // 为每个参与维度预生成「确定性铺开」的取值数组 + 辅助通道
-  const active = [];
-  for (const key of dims) {
-    const def = DIM_DEFS[key];
-    if (!def) continue;
-    const desc = def.make(R, ctxBase);
-    if (!desc) continue;
-    const seed = (strHash(key) ^ intensitySeed) >>> 0;
-    const values = makeValues(desc, count, mulberry32(seed));
-    const aux = spreadNum(count, 0, 0.999999, 6, mulberry32((seed ^ 0xabcdef) >>> 0));
-    active.push({ key, def, values, aux });
-  }
 
   const jobs = [];
-  for (let i = 0; i < count; i++) {
-    const idx = String(i + 1).padStart(3, '0');
-    const o = {
-      input: batch.input,
-      codec,
-      preset: 'veryfast',
-      crf: 23,
-      muteAudio: mute,
-      vertical: Object.assign({}, vertical),
-      totalDuration: batch.meta ? batch.meta.duration : 0,
-    };
-    const ctx = { R, codec, baseBitrateK, vertical, idx: i };
-    for (const a of active) a.def.apply(o, a.values[i], a.aux[i], ctx);
-    const ext = o.__ext || 'mp4';
-    delete o.__ext;
-    o.output = joinPath(batch.outDir, `${baseName}_抖音_${idx}.${ext}`);
-    jobs.push(o);
-  }
+  // 每个原视频独立生成 count 条，输出到「输出目录/原视频名/」子目录下
+  batch.inputs.forEach((src, inputIdx) => {
+    const baseName = baseFileName(src.path);
+    const subDir = joinPath(batch.outDir, sanitizeFolderName(baseName));
+    const baseBitrateK = src.meta && src.meta.bitrate ? Math.round(src.meta.bitrate / 1000) : 4000;
+    const totalDuration = src.meta ? src.meta.duration : 0;
+    const ctxBase = { R, codec, baseBitrateK, vertical };
+    // 种子混入原视频，使不同原视频获得不同的随机微调组合
+    const intensitySeed = (strHash(intensity) ^ count ^ ((strHash(baseName) + inputIdx * 0x9e3779b1) >>> 0)) >>> 0;
+
+    // 为每个参与维度预生成「确定性铺开」的取值数组 + 辅助通道
+    const active = [];
+    for (const key of dims) {
+      const def = DIM_DEFS[key];
+      if (!def) continue;
+      const desc = def.make(R, ctxBase);
+      if (!desc) continue;
+      const seed = (strHash(key) ^ intensitySeed) >>> 0;
+      const values = makeValues(desc, count, mulberry32(seed));
+      const aux = spreadNum(count, 0, 0.999999, 6, mulberry32((seed ^ 0xabcdef) >>> 0));
+      active.push({ key, def, values, aux });
+    }
+
+    for (let i = 0; i < count; i++) {
+      const idx = String(i + 1).padStart(3, '0');
+      const o = {
+        input: src.path,
+        codec,
+        preset: 'veryfast',
+        crf: 23,
+        muteAudio: mute,
+        vertical: Object.assign({}, vertical),
+        totalDuration,
+      };
+      const ctx = { R, codec, baseBitrateK, vertical, idx: i };
+      for (const a of active) a.def.apply(o, a.values[i], a.aux[i], ctx);
+      const ext = o.__ext || 'mp4';
+      delete o.__ext;
+      o.output = joinPath(subDir, `${baseName}_抖音_${idx}.${ext}`);
+      jobs.push(o);
+    }
+  });
   return jobs;
 }
 
@@ -585,6 +600,11 @@ function baseFileName(p) {
 function joinPath(dir, name) {
   const sep = dir.includes('\\') ? '\\' : '/';
   return dir.replace(/[\\/]$/, '') + sep + name;
+}
+// 清理成合法的文件夹名（去除 Windows / macOS 非法字符）
+function sanitizeFolderName(name) {
+  const cleaned = String(name).replace(/[\\/:*?"<>|]/g, '_').replace(/[.\s]+$/, '').trim();
+  return cleaned || '视频';
 }
 
 /* ---- CSV 模板（中文表头 + 英文兼容） ---- */
@@ -659,46 +679,53 @@ function csvRowsToJobs(rows) {
     if (field) colIndex[field.key] = i;
   });
   const jobs = [];
-  const baseName = baseFileName(batch.input);
-  for (let r = 1; r < rows.length; r++) {
-    const row = rows[r];
-    if (!row.length || row.every((c) => !c)) continue;
-    const get = (name) => { const i = colIndex[name]; return i != null && i >= 0 ? (row[i] || '') : ''; };
-    const n = (name) => { const v = parseFloat(get(name)); return isNaN(v) ? undefined : v; };
+  // 每个原视频独立套用整份 CSV，输出到「输出目录/原视频名/」子目录下
+  batch.inputs.forEach((src) => {
+    const baseName = baseFileName(src.path);
+    const subDir = joinPath(batch.outDir, sanitizeFolderName(baseName));
+    const totalDuration = src.meta ? src.meta.duration : 0;
+    let rowIdx = 0;
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row.length || row.every((c) => !c)) continue;
+      rowIdx++;
+      const get = (name) => { const i = colIndex[name]; return i != null && i >= 0 ? (row[i] || '') : ''; };
+      const n = (name) => { const v = parseFloat(get(name)); return isNaN(v) ? undefined : v; };
 
-    const fname = get('filename') || `${baseName}_${String(jobs.length + 1).padStart(3, '0')}`;
-    let vmode = (get('vertical_mode') || '').toLowerCase();
-    const vsize = get('vertical_size');
-    let vertical = readVertical('bvEnabled', 'bvSize', 'bvMode');
-    if (vmode || vsize) {
-      const [w, h] = (vsize || `${vertical.width}x${vertical.height}`).split('x').map(Number);
-      vertical = { enabled: true, mode: vmode || vertical.mode, width: w || 1080, height: h || 1920 };
+      const fname = get('filename') || `${baseName}_${String(rowIdx).padStart(3, '0')}`;
+      let vmode = (get('vertical_mode') || '').toLowerCase();
+      const vsize = get('vertical_size');
+      let vertical = readVertical('bvEnabled', 'bvSize', 'bvMode');
+      if (vmode || vsize) {
+        const [w, h] = (vsize || `${vertical.width}x${vertical.height}`).split('x').map(Number);
+        vertical = { enabled: true, mode: vmode || vertical.mode, width: w || 1080, height: h || 1920 };
+      }
+      const o = {
+        input: src.path,
+        output: joinPath(subDir, fname.replace(/\.[^.]+$/, '') + '.mp4'),
+        codec: get('codec') || 'libx264',
+        preset: 'veryfast',
+        crf: 23,
+        bitrate: get('bitrate') || undefined,
+        fps: n('fps'),
+        brightness: n('brightness'),
+        contrast: n('contrast'),
+        saturation: n('saturation'),
+        gamma: n('gamma'),
+        sharpen: n('sharpen'),
+        blur: n('blur'),
+        speed: n('speed'),
+        zoom: n('zoom'),
+        flip: /^(1|true|yes|是)$/i.test(get('flip')),
+        startTime: n('startTime'),
+        duration: n('duration'),
+        muteAudio: /^(1|true|yes|是)$/i.test(get('muteAudio')),
+        vertical,
+        totalDuration,
+      };
+      jobs.push(o);
     }
-    const o = {
-      input: batch.input,
-      output: joinPath(batch.outDir, fname.replace(/\.[^.]+$/, '') + '.mp4'),
-      codec: get('codec') || 'libx264',
-      preset: 'veryfast',
-      crf: 23,
-      bitrate: get('bitrate') || undefined,
-      fps: n('fps'),
-      brightness: n('brightness'),
-      contrast: n('contrast'),
-      saturation: n('saturation'),
-      gamma: n('gamma'),
-      sharpen: n('sharpen'),
-      blur: n('blur'),
-      speed: n('speed'),
-      zoom: n('zoom'),
-      flip: /^(1|true|yes|是)$/i.test(get('flip')),
-      startTime: n('startTime'),
-      duration: n('duration'),
-      muteAudio: /^(1|true|yes|是)$/i.test(get('muteAudio')),
-      vertical,
-      totalDuration: batch.meta ? batch.meta.duration : 0,
-    };
-    jobs.push(o);
-  }
+  });
   return jobs;
 }
 
@@ -710,7 +737,10 @@ $('csvOpen').addEventListener('click', async () => {
     if (rows.length < 2) throw new Error('CSV 至少需要表头 + 1 行数据');
     batch.csvRows = rows;
     const dataCount = rows.length - 1;
-    $('csvStatus').textContent = `已导入 ${dataCount} 行 → 将生成 ${dataCount} 条视频`;
+    const nVids = batch.inputs.length || 1;
+    $('csvStatus').textContent = nVids > 1
+      ? `已导入 ${dataCount} 行 × ${nVids} 个原视频 → 将生成 ${dataCount * nVids} 条视频`
+      : `已导入 ${dataCount} 行 → 将生成 ${dataCount} 条视频`;
     $('csvStatus').classList.add('ok');
     $('csvPreview').hidden = false;
     $('csvPreview').textContent = rows.slice(0, 8).map((r) => r.join(' | ')).join('\n') + (rows.length > 8 ? '\n…' : '');
@@ -723,6 +753,12 @@ $('csvOpen').addEventListener('click', async () => {
 /* ---- 批量执行与进度 ---- */
 let batchJobs = [];
 
+// 展示为「子目录/文件名」，方便区分不同原视频
+function outputDisplayName(p) {
+  const parts = String(p).replace(/\\/g, '/').split('/').filter(Boolean);
+  return parts.slice(-2).join('/');
+}
+
 function renderResultList(jobs) {
   const list = $('bResultList');
   list.innerHTML = '';
@@ -732,7 +768,7 @@ function renderResultList(jobs) {
     el.id = 'ri-' + i;
     el.innerHTML =
       `<span class="ri-status">⏳</span>` +
-      `<span class="ri-name">${baseFileName(j.output)}.mp4</span>` +
+      `<span class="ri-name">${outputDisplayName(j.output)}</span>` +
       `<span class="ri-info"></span>`;
     list.appendChild(el);
   });
@@ -770,7 +806,7 @@ window.api.onBatchItemDone(({ index, ok, output, error }) => {
 
 $('bRun').addEventListener('click', async () => {
   if (batch.running) return;
-  if (!batch.input) return toast('请先选择原视频', 'error');
+  if (!batch.inputs.length) return toast('请先选择原视频', 'error');
   if (!batch.outDir) return toast('请先选择输出目录', 'error');
 
   try {
@@ -788,7 +824,10 @@ $('bRun').addEventListener('click', async () => {
   $('bOverallWrap').hidden = false;
   $('bOverallFill').style.width = '0%';
   $('bOverallText').textContent = `0 / ${batchJobs.length}`;
-  $('batchSummary').textContent = `共 ${batchJobs.length} 条`;
+  const vids = batch.inputs.length;
+  $('batchSummary').textContent = vids > 1
+    ? `${vids} 个原视频 × 每个 ${batchJobs.length / vids} 条 = 共 ${batchJobs.length} 条`
+    : `共 ${batchJobs.length} 条`;
   $('engineStatus').textContent = '批量处理中…';
   $('engineStatus').classList.add('busy');
   renderResultList(batchJobs);
